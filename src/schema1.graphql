@@ -1,0 +1,8 @@
+type Woot {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  woots: [Woot]!
+}
