@@ -2,17 +2,18 @@ const { loadSchema } = require("@graphql-tools/load");
 const { graphql, print } = require("graphql");
 
 const { GraphQLFileLoader } = require("@graphql-tools/graphql-file-loader");
-const { TransformObjectFields } = require("@graphql-tools/wrap");
 const { stitchSchemas } = require("@graphql-tools/stitch");
 
-const transformFooToBar = (typeName, fieldName, fieldConfig) => {
-  console.log(typeName, fieldName);
-  let newFieldName = fieldName;
-  if (fieldName === "foos") {
-    newFieldName = "bars";
+class TransformSchema {
+  transformSchema(originalWrappingSchema) {
+    console.log('TransformSchema');
+    return originalWrappingSchema;
   }
-  return [newFieldName, fieldConfig];
-};
+
+  transformRequest(originalRequest) {
+    return originalRequest;
+  }
+}
 
 async function main() {
   const clientSchema1 = await loadSchema("./src/schema1.graphql", {
@@ -24,7 +25,7 @@ async function main() {
   });
 
   const executor = ({ document, context }) => ({
-    data: { bars: [] },
+    data: { foos: [] },
     errors: []
   });
 
@@ -32,17 +33,16 @@ async function main() {
     subschemas: [
       {
         schema: clientSchema1,
-        transforms: [new TransformObjectFields(transformFooToBar)],
+        transforms: [new TransformSchema()],
         executor
       },
       {
         schema: clientSchema2,
-        transforms: [new TransformObjectFields(transformFooToBar)],
         executor
       }
     ]
   });
-  const source = `query { bars { name id} }`;
+  const source = `query { foos { name id} }`;
   const result = await graphql({ schema, source, variableValues: {} });
 
   console.log(JSON.stringify(result, null, 4));
